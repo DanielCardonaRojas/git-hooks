@@ -10,30 +10,39 @@ fi
 
 HOOKS_DIR="$REPO_ROOT/.githooks"
 GIT_HOOKS_DIR="$REPO_ROOT/.git/hooks"
-TRACKER_SUFFIX="hooks.txt"
+TRACKER_SUFFIX="_hooks.txt"
 
-# Ensure .githooks directory exists and create event subdirectories if they don't exist
+# Ensure .githooks directory exists and create trigger subdirectories if they don't exist
 setup_directories() {
   mkdir -p "$HOOKS_DIR"
-  for event in pre-commit commit-msg post-commit pre-push; do
-    mkdir -p "${HOOKS_DIR}/${event}"
+  for trigger in pre-commit commit-msg post-commit pre-push; do
+    mkdir -p "${HOOKS_DIR}/${trigger}"
   done
 }
 
-# Write to .git/hooks/EVENT to ensure it runs git-hook run EVENT
+# Write to .git/hooks/trigger to ensure it runs git-hook run trigger
 setup_git_hooks() {
-  for event in pre-commit commit-msg post-commit pre-push; do
-    local git_hook_file="${GIT_HOOKS_DIR}/${event}"
+  for trigger in pre-commit commit-msg post-commit pre-push; do
+    local git_hook_file="${GIT_HOOKS_DIR}/${trigger}"
     echo "#!/bin/bash" > "$git_hook_file"
-    echo "git-hook run $event" >> "$git_hook_file"
+    echo "git hooks run $trigger" >> "$git_hook_file"
     chmod +x "$git_hook_file"
   done
 }
 
+activate() {
+    if [ -n "$2" ]; then
+        activate_hook "$1" "$2"
+    else
+        activate_all $1
+    fi
+}
+
+# Activate a single script for a given trigger
 activate_hook() {
-  local event="$1"
+  local trigger="$1"
   local script="$2"
-  local tracker_file="${HOOKS_DIR}/${event}${TRACKER_SUFFIX}"
+  local tracker_file="${HOOKS_DIR}/${trigger}${TRACKER_SUFFIX}"
 
   # Ensure the tracker file exists
   mkdir -p "$(dirname "$tracker_file")"
@@ -42,48 +51,77 @@ activate_hook() {
   # Add the script to the tracker file if it's not already there
   if ! grep -Fxq "$script" "$tracker_file"; then
     echo "$script" >> "$tracker_file"
-    echo "activated ${script} for ${event}."
+    echo "activated ${script} for ${trigger}."
   else
-    echo "${script} is already activated for ${event}."
+    echo "${script} is already activated for ${trigger}."
   fi
 }
 
+# Activate all hooks for a given trigger
+activate_all() {
+  local trigger="$1"
+  for script in $(find "${HOOKS_DIR}/$trigger" -type f -depth 1 | xargs -L 1 basename); do
+    activate_hook "$trigger" "$script"
+  done
+}
+
 deactivate_hook() {
-  local event="$1"
+  local trigger="$1"
   local script="$2"
-  local tracker_file="${HOOKS_DIR}/${event}${TRACKER_SUFFIX}"
+  local tracker_file="${HOOKS_DIR}/${trigger}${TRACKER_SUFFIX}"
 
   if [ ! -f "$tracker_file" ]; then
-    echo "No scripts activated for ${event}."
+    echo "No scripts activated for ${trigger}."
     return
   fi
 
   # Remove the script from the tracker file
   sed -i.bak "\|$script|d" "$tracker_file" && rm "${tracker_file}.bak"
-  echo "deactivated ${script} from ${event}."
+  echo "deactivated ${script} from ${trigger}."
+}
+
+deactivate_all() {
+  local trigger="$1"
+  for script in $(find "${HOOKS_DIR}/$trigger" -type f -depth 1 | xargs -L 1 basename); do
+    deactivate_hook "$trigger" "$script"
+  done
+}
+
+deactivate() {
+    if [ -n "$2" ]; then
+        deactivate_hook "$1" "$2"
+    else
+        deactivate_all $1
+    fi
 }
 
 list_hooks() {
-  for event in pre-commit commit-msg post-commit pre-push; do
-    ls "${HOOKS_DIR}/$event"
+  for trigger in pre-commit commit-msg post-commit pre-push; do
+    if [ ! -z "$(ls -A ${HOOKS_DIR}/$trigger)" ]; then
+        echo "$trigger"
+        for item in $(ls "${HOOKS_DIR}/$trigger"); do
+            echo "    $item"
+        done
+        echo ""
+    fi
   done
 }
 
 run_hooks() {
-  local event="$1"
-  local tracker_file="${HOOKS_DIR}/${event}${TRACKER_SUFFIX}"
+  local trigger="$1"
+  local tracker_file="${HOOKS_DIR}/${trigger}${TRACKER_SUFFIX}"
 
-  if [ ! -f "$tracker_file" ]; then
-    echo "No scripts activateed for ${event}."
+  if [ ! -f "$tracker_file" ] || [ ! -s "$tracker_file" ]; then
+    echo "No scripts activated for ${trigger}."
     return
   fi
 
   # Execute each script listed in the tracker file
   while IFS= read -r script; do
-    if [ -x "$HOOKS_DIR/$event/$script" ]; then
-      "$HOOKS_DIR/$event/$script"
+    if [ -x "$HOOKS_DIR/$trigger/$script" ]; then
+      "$HOOKS_DIR/$trigger/$script"
       if [ $? -ne 0 ]; then
-        echo "Hook ${script} failed for ${event}."
+        echo "Hook ${script} failed for ${trigger}."
         exit 1
       fi
     else
@@ -100,10 +138,10 @@ setup() {
 
 case "$1" in
   activate)
-    activate_hook "$2" "$3"
+    activate "$2" "$3"
     ;;
   deactivate)
-    deactivate_hook "$2" "$3"
+    deactivate "$2" "$3"
     ;;
   list)
     list_hooks
@@ -115,7 +153,7 @@ case "$1" in
     setup
     ;;
   *)
-    echo "Usage: $0 {activate|deactivate|list|run|setup} <event> <script>"
+    echo "Usage: $0 {activate|deactivate|list|run|setup} <trigger> <script>"
     exit 1
     ;;
 esac

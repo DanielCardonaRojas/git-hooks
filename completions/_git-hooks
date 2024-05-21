@@ -44,6 +44,7 @@ _git-hooks ()
 				'deactivate:Deactivate an activated hook.'
 				'setup:Create the hooks folder structure and edit .git/hooks.'
 				'list:List all available hooks'
+                'run:Run activated hooks for a given trigger (pre-commit, commit-msg, post-commit, pre-push)'
 			)
 			_describe -t commands 'git hooks' subcommands
 		;;
@@ -54,6 +55,9 @@ _git-hooks ()
                     __git-hooks-activate
                 ;;
                 (deactivate)
+                    __git-hooks-activate
+                ;;
+                (run)
                     __git-hooks-activate
                 ;;
 			esac
