@@ -13,16 +13,15 @@
 
 ## Installation
 
-Clone the `git-hook` repository to your local machine:
-
-```sh
-git clone https://github.com/yourusername/git-hook.git
+```
+curl -L -o ~/.local/bin/git-hooks https://raw.githubusercontent.com/DanielCardonaRojas/git-hooks/main/git-hooks
 ```
 
-Add the `git-hook` script to your `PATH`:
+Install completions:
 
 ```sh
-export PATH=$PATH:/path/to/git-hook
+# Add the zsh completion file in one of the following locations:
+echo $fpath
 ```
 
 ## Usage
