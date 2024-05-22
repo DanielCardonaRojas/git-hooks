@@ -107,6 +107,12 @@ list_hooks() {
   done
 }
 
+list_active() {
+    for tracker_file in $(find ${HOOKS_DIR}/*${TRACKER_SUFFIX}); do
+        cat $tracker_file
+    done
+}
+
 arrange_hooks() {
   local trigger="$1"
   local tracker_file="${HOOKS_DIR}/${trigger}${TRACKER_SUFFIX}"
@@ -154,6 +160,9 @@ case "$1" in
     ;;
   list)
     list_hooks
+    ;;
+  list-active)
+    list_active
     ;;
   run)
     run_hooks "$2"
