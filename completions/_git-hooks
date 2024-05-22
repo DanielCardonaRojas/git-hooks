@@ -12,6 +12,15 @@ __git-hooks-activate() {
     '*:: :__git-script-list'
 }
 
+__git-hooks-types() {
+    local cur
+    cur=${words[CURRENT]}
+
+    # Generate completions from the list of hook files
+    _arguments \
+    '1: :(pre-commit commit-msg post-commit pre-push)'
+}
+
 __git-script-list() {
     local cur
     cur=${words[CURRENT]}
@@ -45,6 +54,7 @@ _git-hooks ()
 				'setup:Create the hooks folder structure and edit .git/hooks.'
 				'list:List all available hooks'
                 'run:Run activated hooks for a given trigger (pre-commit, commit-msg, post-commit, pre-push)'
+                'arrange:Change the order of hooks for a particular trigger'
 			)
 			_describe -t commands 'git hooks' subcommands
 		;;
@@ -58,7 +68,10 @@ _git-hooks ()
                     __git-hooks-activate
                 ;;
                 (run)
-                    __git-hooks-activate
+                    __git-hooks-types
+                ;;
+                (arrange)
+                    __git-hooks-types
                 ;;
 			esac
 		;;
