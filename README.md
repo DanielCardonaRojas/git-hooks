@@ -26,6 +26,14 @@ echo $fpath
 
 ## Usage
 
+### Run Hook Scripts
+
+Manually run all scripts associated with a specific Git event:
+
+```sh
+git hooks run [pre-push|pre-commit|commit-msg]
+```
+
 ### Setup
 
 Set up the necessary directories and initialize Git hooks:
@@ -60,6 +68,8 @@ Example:
 
 ```sh
 git hooks deactivate pre-commit my-script.sh
+# or deactivate all scripts for the pre-commit trigger
+git hooks deactivate pre-commit
 ```
 
 ### Install Hook Scripts from External Sources
@@ -70,25 +80,16 @@ Fetch new hook scripts from an external repository or location:
 git hooks install <source-repo>
 ```
 
-Example:
+
+
+### Include an external hook contributed hook after installed in the current repo.
+
+After issuing a `git hooks install` command, you can use the `git hooks use` command to include an external hook in the current repo.
 
 ```sh
-git hooks install https://github.com/anotheruser/githooks-repo.git
+git hooks use <TAB>
 ```
 
-### Run Hook Scripts
-
-Manually run all scripts associated with a specific Git event:
-
-```sh
-git hooks run <event>
-```
-
-Example:
-
-```sh
-git hooks run pre-commit
-```
 
 ## Directory Structure
 
@@ -103,6 +104,7 @@ The `git-hook` system uses a directory-based structure for managing hook scripts
 │   └── script3.sh
 └── commit-msg/
     └── script4.sh
+...
 ```
 
 ## Zsh Completion
