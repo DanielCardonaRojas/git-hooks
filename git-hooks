@@ -56,6 +56,12 @@ activate_hook() {
   local trigger="$1"
   local script="$2"
   local tracker_file="${HOOKS_DIR}/${trigger}${TRACKER_SUFFIX}"
+  local script_path="${HOOKS_DIR}/${trigger}/${script}"
+
+  # Make script_path executable if not
+  if [ ! -x "$script_path" ]; then
+    chmod +x "$script_path"
+  fi
 
   # Ensure the tracker file exists
   mkdir -p "$(dirname "$tracker_file")"

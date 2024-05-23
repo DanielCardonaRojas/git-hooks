@@ -22,6 +22,7 @@ Install completions:
 ```sh
 # Add the zsh completion file in one of the following locations:
 echo $fpath
+# Or source in your .zshrc
 ```
 
 ## Usage
@@ -125,4 +126,3 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 
 ---
 
-This README file provides an overview of the `git-hook` project, including installation instructions, usage examples, and information about the directory structure and Zsh completion. Adjust the URLs and paths to match your actual repository and file locations.
