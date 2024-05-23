@@ -18,6 +18,7 @@ setup_directories() {
   for trigger in pre-commit commit-msg post-commit pre-push; do
     mkdir -p "${HOOKS_DIR}/${trigger}"
   done
+  echo "*${TRACKER_SUFFIX}" > "${HOOKS_DIR}/.gitignore"
 }
 
 # Write to .git/hooks/trigger to ensure it runs git-hook run trigger
