@@ -3,22 +3,34 @@
 # Get the root directory of the git repository
 REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
 
-if [ $? -ne 0 ]; then
-  echo "Error: Not inside a Git repository."
-  exit 1
-fi
+# if [ $? -ne 0 ]; then
+#   echo "Error: Not inside a Git repository."
+#   exit 1
+# fi
 
 HOOKS_DIR="$REPO_ROOT/.githooks"
 GIT_HOOKS_DIR="$REPO_ROOT/.git/hooks"
 TRACKER_SUFFIX="_hooks.txt"
+CLONE_DIR="${GIT_HOOKS_INSTALL:-$HOME/.local/share/git-hooks/}"
+
+install() {
+    local repo_url="$1"
+    #if clone dir does not exist create
+    if [ ! -d "$CLONE_DIR" ]; then
+        mkdir -p "$CLONE_DIR"
+    fi
+    # Clone the repository into the specified directory
+    git -C "$CLONE_DIR" clone "$repo_url" 
+}
 
 # Ensure .githooks directory exists and create trigger subdirectories if they don't exist
 setup_directories() {
-  mkdir -p "$HOOKS_DIR"
+  local scaffold_dir="$1"
+  mkdir -p "$scaffold_dir"
   for trigger in pre-commit commit-msg post-commit pre-push; do
-    mkdir -p "${HOOKS_DIR}/${trigger}"
+    mkdir -p "${scaffold_dir}/${trigger}"
   done
-  echo "*${TRACKER_SUFFIX}" > "${HOOKS_DIR}/.gitignore"
+  echo "*${TRACKER_SUFFIX}" > "${scaffold_dir}/.gitignore"
 }
 
 # Write to .git/hooks/trigger to ensure it runs git-hook run trigger
@@ -144,7 +156,7 @@ run_hooks() {
 }
 
 setup() {
-  setup_directories
+  setup_directories "$HOOKS_DIR"
   setup_git_hooks
   echo "Git hooks setup completed."
 }
@@ -171,8 +183,14 @@ case "$1" in
   setup)
     setup
     ;;
+  scaffold)
+      setup_directories "${2:-$(pwd)}"
+    ;;
+  install)
+      install $2
+    ;;
   *)
-    echo "Usage: $0 {activate|deactivate|list|run|setup} <trigger> <script>"
+    echo "Usage: $0 {activate|deactivate|list|run|setup|scaffold|install} <trigger> <script>"
     exit 1
     ;;
 esac
