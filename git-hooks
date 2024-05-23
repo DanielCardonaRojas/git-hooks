@@ -161,6 +161,23 @@ setup() {
   echo "Git hooks setup completed."
 }
 
+# Bring a user or contrib scoped hook into the current repo directory
+import-contributed() {
+    local hook_location="$1"
+    local trigger=$(echo "$hook_location" | xargs dirname | xargs basename)
+    local hook_name=$(echo "$hook_location" | xargs basename)
+    cp "$CLONE_DIR/$hook_location" "$HOOKS_DIR/$trigger/$hook_name"
+}
+
+use() {
+    # If no .githooks directory than initialize
+    if [ ! -d "$HOOKS_DIR" ]; then
+        setup
+    fi
+
+    import-contributed $1
+}
+
 case "$1" in
   arrange)
     arrange_hooks "$2"
@@ -189,8 +206,11 @@ case "$1" in
   install)
       install $2
     ;;
+  use)
+      use $2
+    ;;
   *)
-    echo "Usage: $0 {activate|deactivate|list|run|setup|scaffold|install} <trigger> <script>"
+    echo "Usage: $0 {activate|deactivate|list|run|setup|scaffold|install|use} <trigger> <script>"
     exit 1
     ;;
 esac

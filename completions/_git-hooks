@@ -1,6 +1,7 @@
 #compdef git-hooks
 
 # Define the directory where your hook files are stored
+CLONE_DIR="${GIT_HOOKS_INSTALL:-$HOME/.local/share/git-hooks/}"
 
 __git-hooks-activate() {
     local cur
@@ -12,6 +13,14 @@ __git-hooks-activate() {
     '*:: :__git-script-list'
 }
 
+__git-contrib-hooks() {
+    local cur
+    cur=${words[CURRENT]}
+
+    # Generate completions from the list of hook files
+    _arguments '1: :__contrib_hooks'
+}
+
 __git-hooks-types() {
     local cur
     cur=${words[CURRENT]}
@@ -21,13 +30,23 @@ __git-hooks-types() {
     '1: :(pre-commit commit-msg post-commit pre-push)'
 }
 
+__contrib_hooks() {
+    local hooks
+
+    # find $CLONE_DIR -name '.*' -prune -o -type f -print | sed "s|$CLONE_DIR||"
+    hooks=(${${(f)"$(_call_program contrib_hooks find $CLONE_DIR -name '.gitignore' -prune -o -name '.*' -prune -o -type f -print | sed "s|^$CLONE_DIR/||" 2>/dev/null)"}})
+
+    # Generate completions from the list of hook files
+    _describe 'contrib hooks' hooks
+}
+
 __git-script-list() {
     local cur
     cur=${words[CURRENT]}
 
     # List hook files in the hooks directory
     local hooks
-    
+
     hooks=(${${(f)"$(_call_program hooks git rev-parse --show-toplevel | xargs -I {} ls "{}/.githooks/$words[1]" 2>/dev/null)"}})
 
     # Generate completions from the list of hook files
@@ -56,6 +75,7 @@ _git-hooks ()
 				'list-active:List all active hooks'
                 'run:Run activated hooks for a given trigger (pre-commit, commit-msg, post-commit, pre-push)'
                 'arrange:Change the order of hooks for a particular trigger'
+                'use: Use a contributed hook by copying to current repo'
 			)
 			_describe -t commands 'git hooks' subcommands
 		;;
@@ -73,6 +93,9 @@ _git-hooks ()
                 ;;
                 (arrange)
                     __git-hooks-types
+                ;;
+                (use)
+                    __git-contrib-hooks
                 ;;
 			esac
 		;;
