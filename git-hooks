@@ -129,7 +129,7 @@ setup_directories() {
 setup_git_hooks() {
   for trigger in pre-commit commit-msg post-commit pre-push; do
     local git_hook_file="${GIT_HOOKS_DIR}/${trigger}"
-    echo "#!/bin/bash" > "$git_hook_file"
+    echo "#!/bin/zsh" > "$git_hook_file"
     echo "git hooks run $trigger" >> "$git_hook_file"
     chmod +x "$git_hook_file"
   done
