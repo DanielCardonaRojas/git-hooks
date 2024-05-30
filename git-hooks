@@ -12,15 +12,107 @@ HOOKS_DIR="$REPO_ROOT/.githooks"
 GIT_HOOKS_DIR="$REPO_ROOT/.git/hooks"
 TRACKER_SUFFIX="_hooks.txt"
 CLONE_DIR="${GIT_HOOKS_INSTALL:-$HOME/.local/share/git-hooks/}"
+PROGRAM=$(basename $0)
+
+show_help() {
+    echo "Usage: $PROGRAM <command> [options]"
+    echo
+    echo "Commands:"
+    echo "  arrange      Arrange hooks for a given trigger"
+    echo "  activate     Activate a script for a given trigger"
+    echo "  deactivate   Deactivate a script for a given trigger"
+    echo "  list         List all hooks"
+    echo "  list-active  List all active hooks"
+    echo "  run          Run hooks for a given trigger"
+    echo "  setup        Setup git hooks"
+    echo "  scaffold     Scaffold hooks directory"
+    echo "  install      Install hooks from a repository"
+    echo "  use          Import contributed hook"
+    echo
+    echo "Options:"
+    echo "  -h, --help   Show this help message"
+    echo
+    echo "Run '$0 <command> --help' for more information on a command."
+}
+
+show_arrange_help() {
+    echo "Usage: $PROGRAM arrange <trigger>"
+    echo "Arrange hooks for a given trigger."
+    echo "Options:"
+    echo "  -h, --help   Show this help message"
+}
+
+show_activate_help() {
+    echo "Usage: $PROGRAM activate <trigger> <script>"
+    echo "Activate a script for a given trigger."
+    echo "Options:"
+    echo "  -h, --help   Show this help message"
+}
+
+show_deactivate_help() {
+    echo "Usage: $PROGRAM deactivate <trigger> <script>"
+    echo "Deactivate a script for a given trigger."
+    echo "Options:"
+    echo "  -h, --help   Show this help message"
+}
+
+show_list_help() {
+    echo "Usage: $PROGRAM list"
+    echo "List all hooks."
+    echo "Options:"
+    echo "  -h, --help   Show this help message"
+}
+
+show_list_active_help() {
+    echo "Usage: $PROGRAM list-active"
+    echo "List all active hooks."
+    echo "Options:"
+    echo "  -h, --help   Show this help message"
+}
+
+show_run_help() {
+    echo "Usage: $PROGRAM run <trigger>"
+    echo "Run hooks for a given trigger."
+    echo "Options:"
+    echo "  -h, --help   Show this help message"
+}
+
+show_setup_help() {
+    echo "Usage: $PROGRAM setup"
+    echo "Setup git hooks."
+    echo "Options:"
+    echo "  -h, --help   Show this help message"
+}
+
+show_scaffold_help() {
+    echo "Usage: $PROGRAM scaffold [directory]"
+    echo "Scaffold hooks directory."
+    echo "Options:"
+    echo "  -h, --help   Show this help message"
+}
+
+show_install_help() {
+    echo "Usage: $PROGRAM install <repo_url>"
+    echo "Install hooks from a repository."
+    echo "Options:"
+    echo "  -h, --help   Show this help message"
+}
+
+show_use_help() {
+    echo "Usage: $PROGRAM use <hook_location>"
+    echo "Import contributed hook."
+    echo "Options:"
+    echo "  -h, --help   Show this help message"
+}
 
 install() {
     local repo_url="$1"
-    #if clone dir does not exist create
+    # If clone dir does not exist create
     if [ ! -d "$CLONE_DIR" ]; then
         mkdir -p "$CLONE_DIR"
     fi
     # Clone the repository into the specified directory
-    git -C "$CLONE_DIR" clone "$repo_url" 
+    git -C "$CLONE_DIR" clone "$repo_url"
 }
 
 # Ensure .githooks directory exists and create trigger subdirectories if they don't exist
@@ -44,10 +136,12 @@ setup_git_hooks() {
 }
 
 activate() {
-    if [ -n "$2" ]; then
-        activate_hook "$1" "$2"
+    local trigger="$1"
+    local script="$2"
+    if [ -n "$script" ]; then
+        activate_hook "$trigger" "$script"
     else
-        activate_all $1
+        activate_all "$trigger"
     fi
 }
 
@@ -107,11 +201,13 @@ deactivate_all() {
 }
 
 deactivate() {
-    if [ -n "$2" ]; then
-        deactivate_hook "$1" "$2"
-    else
-        deactivate_all $1
-    fi
+  local trigger="$1"
+  local script="$2"
+  if [ -n "$script" ]; then
+      deactivate_hook "$trigger" "$script"
+  else
+      deactivate_all "$trigger"
+  fi
 }
 
 list_hooks() {
@@ -168,7 +264,7 @@ setup() {
 }
 
 # Bring a user or contrib scoped hook into the current repo directory
-import-contributed() {
+import_contributed() {
     local hook_location="$1"
     local trigger=$(echo "$hook_location" | xargs dirname | xargs basename)
     local hook_name=$(echo "$hook_location" | xargs basename)
@@ -181,43 +277,68 @@ use() {
         setup
     fi
 
-    import-contributed $1
+    import_contributed "$1"
 }
 
+parse_options() {
+    local cmd_help_function="$1"
+    shift
+    OPTIONS=$(getopt -o h --long help -- "$@")
+    if [ $? -ne 0 ]; then $cmd_help_function; exit 1; fi
+    eval set -- "$OPTIONS"
+    while true; do
+        case "$1" in
+            -h|--help) $cmd_help_function; exit 0;;
+            --) shift; break;;
+        esac
+    done
+}
+
+# Main command dispatcher
 case "$1" in
-  arrange)
-    arrange_hooks "$2"
-    ;;
-  activate)
-    activate "$2" "$3"
-    ;;
-  deactivate)
-    deactivate "$2" "$3"
-    ;;
-  list)
-    list_hooks
-    ;;
-  list-active)
-    list_active
-    ;;
-  run)
-    run_hooks "$2"
-    ;;
-  setup)
-    setup
-    ;;
-  scaffold)
-      setup_directories "${2:-$(pwd)}"
-    ;;
-  install)
-      install $2
-    ;;
-  use)
-      use $2
-    ;;
-  *)
-    echo "Usage: $0 {activate|deactivate|list|run|setup|scaffold|install|use} <trigger> <script>"
-    exit 1
-    ;;
+    arrange)
+        parse_options show_arrange_help "$@"
+        arrange_hooks "$2"
+        ;;
+    activate)
+        parse_options show_activate_help "$@"
+        activate "$2" "$3"
+        ;;
+    deactivate)
+        parse_options show_deactivate_help "$@"
+        deactivate "$2" "$3"
+        ;;
+    list)
+        parse_options show_list_help "$@"
+        list_hooks
+        ;;
+    list-active)
+        parse_options show_list_active_help "$@"
+        list_active
+        ;;
+    run)
+        parse_options show_run_help "$@"
+        run_hooks "$2"
+        ;;
+    setup)
+        parse_options show_setup_help "$@"
+        setup
+        ;;
+    scaffold)
+        parse_options show_scaffold_help "$@"
+        setup_directories "${2:-$(pwd)}"
+        ;;
+    install)
+        parse_options show_install_help "$@"
+        install "$2"
+        ;;
+    use)
+        parse_options show_use_help "$@"
+        use "$2"
+        ;;
+    *)
+        show_help
+        exit 1
+        ;;
 esac
 
