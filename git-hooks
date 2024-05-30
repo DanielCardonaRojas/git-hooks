@@ -258,6 +258,11 @@ run_hooks() {
 }
 
 setup() {
+  # if hooks dir already exists exist
+  if [ -d "$HOOKS_DIR" ]; then
+    echo "Git hooks already setup."
+    return
+  fi
   setup_directories "$HOOKS_DIR"
   setup_git_hooks
   echo "Git hooks setup completed."
