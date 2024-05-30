@@ -40,7 +40,7 @@ git hooks run [pre-push|pre-commit|commit-msg]
 Set up the necessary directories and initialize Git hooks:
 
 ```sh
-git hooks setup
+git hooks init
 ```
 
 ### Activate a Hook Script

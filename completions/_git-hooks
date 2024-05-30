@@ -70,7 +70,7 @@ _git-hooks ()
 			subcommands=(
 				'activate:Activate one of the available hooks.'
 				'deactivate:Deactivate an activated hook.'
-				'setup:Create the hooks folder structure and edit .git/hooks.'
+				'init:Create the hooks folder structure and edit .git/hooks.'
 				'list:List all available hooks'
 				'list-active:List all active hooks'
                 'run:Run activated hooks for a given trigger (pre-commit, commit-msg, post-commit, pre-push)'

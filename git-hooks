@@ -24,7 +24,7 @@ show_help() {
     echo "  list         List all hooks"
     echo "  list-active  List all active hooks"
     echo "  run          Run hooks for a given trigger"
-    echo "  setup        Setup git hooks"
+    echo "  init         Setup git hooks"
     echo "  scaffold     Scaffold hooks directory"
     echo "  install      Install hooks from a repository"
     echo "  use          Import contributed hook"
@@ -77,8 +77,8 @@ show_run_help() {
     echo "  -h, --help   Show this help message"
 }
 
-show_setup_help() {
-    echo "Usage: $PROGRAM setup"
+show_init_help() {
+    echo "Usage: $PROGRAM init"
     echo "Setup git hooks."
     echo "Options:"
     echo "  -h, --help   Show this help message"
@@ -320,8 +320,8 @@ case "$1" in
         parse_options show_run_help "$@"
         run_hooks "$2"
         ;;
-    setup)
-        parse_options show_setup_help "$@"
+    init)
+        parse_options show_init_help "$@"
         setup
         ;;
     scaffold)
