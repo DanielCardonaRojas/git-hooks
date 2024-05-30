@@ -32,7 +32,7 @@ show_help() {
     echo "Options:"
     echo "  -h, --help   Show this help message"
     echo
-    echo "Run '$0 <command> --help' for more information on a command."
+    echo "Run '$PROGRAM <command> --help' for more information on a command."
 }
 
 show_arrange_help() {
